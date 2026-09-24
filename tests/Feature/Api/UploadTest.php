@@ -26,11 +26,11 @@ class UploadTest extends TestCase
 
     public function test_upload_an_image(): void
     {
-        $response = $this->postJson('/api/v1/uploads', ['file' => UploadedFile::fake()->image('photo.jpg', 20, 20)])
+        $response = $this->postJson('/api/v1/uploads', ['file' => $this->png('photo.png')])
             ->assertCreated()
             ->assertJsonPath('status', 'success')
-            ->assertJsonPath('data.original_name', 'photo.jpg')
-            ->assertJsonPath('data.mime_type', 'image/jpeg')
+            ->assertJsonPath('data.original_name', 'photo.png')
+            ->assertJsonPath('data.mime_type', 'image/png')
             ->assertJsonMissingPath('data.path')
             ->assertJsonStructure(['data' => ['id', 'original_name', 'mime_type', 'size', 'url', 'created_at']]);
 
@@ -50,7 +50,7 @@ class UploadTest extends TestCase
         $this->postJson('/api/v1/uploads', ['file' => UploadedFile::fake()->create('script.php', 1, 'text/x-php')])
             ->assertUnprocessable();
 
-        $tooBig = UploadedFile::fake()->image('huge.jpg')->size(config('api.uploads.max_kb') + 1);
+        $tooBig = $this->png('huge.png')->size(config('api.uploads.max_kb') + 1);
         $this->postJson('/api/v1/uploads', ['file' => $tooBig])->assertUnprocessable();
 
         $this->postJson('/api/v1/uploads', [])->assertUnprocessable();
@@ -73,12 +73,22 @@ class UploadTest extends TestCase
 
     public function test_delete_removes_the_stored_file(): void
     {
-        $id = $this->postJson('/api/v1/uploads', ['file' => UploadedFile::fake()->image('a.png')])->json('data.id');
+        $id = $this->postJson('/api/v1/uploads', ['file' => $this->png('a.png')])->json('data.id');
         $path = Upload::findOrFail($id)->path;
 
         $this->deleteJson("/api/v1/uploads/{$id}")->assertOk();
 
         Storage::disk('public')->assertMissing($path);
         $this->assertDatabaseMissing('uploads', ['id' => $id]);
+    }
+
+    /**
+     * A real 1x1 PNG (no GD extension needed), so the content-based type check is exercised.
+     */
+    private function png(string $name): UploadedFile
+    {
+        return UploadedFile::fake()->createWithContent($name, (string) base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+        ));
     }
 }
