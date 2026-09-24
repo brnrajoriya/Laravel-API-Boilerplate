@@ -23,11 +23,11 @@ By [Bhaskar Rajoriya](https://www.linkedin.com/in/brnrajoriya/).
 - **File uploads** - multipart upload with content-based type check, size limit, random stored names, owner-only access, file removed on delete
 - **Security defaults** - rate limits (stricter on auth), CORS locked to your frontend, security headers, strict Eloquent mode, no account enumeration, strong passwords in production
 - **API docs** - [Scribe](https://scribe.knuckles.wtf) generates `/docs`, a Postman collection and an OpenAPI spec from the code
-- **Quality** - 60+ feature tests (PHPUnit), Larastan level 6, Pint, GitHub Actions on PHP 8.3 / 8.4 / 8.5
+- **Quality** - 60+ feature tests (PHPUnit), Larastan level 6, Pint, GitHub Actions on PHP 8.4 / 8.5
 
 ## Requirements
 
-- PHP **8.3+** with `pdo_sqlite` (or MySQL / PostgreSQL), `mbstring`, `fileinfo`
+- PHP **8.4+** with `pdo_sqlite` (or MySQL / PostgreSQL), `mbstring`, `fileinfo`
 - Composer 2
 
 ## Quick start
@@ -339,7 +339,7 @@ php artisan optimize          # caches config, routes, events and views
 - Cron: `* * * * * php /path/to/artisan schedule:run` (prunes expired tokens and password-reset tokens).
 - Queue worker if you queue jobs: `php artisan queue:work --tries=3` (Supervisor / systemd).
 - Serve over HTTPS with the web server root pointing to `public/`.
-- Works on Laravel Cloud, Forge, Docker (Laravel Sail) or any PHP 8.3+ host.
+- Works on Laravel Cloud, Forge, Docker (Laravel Sail) or any PHP 8.4+ host.
 
 ## Testing
 
