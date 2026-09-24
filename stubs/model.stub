@@ -1,0 +1,24 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Models\Concerns\HasApiQuery;
+{{ factoryImport }}
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Model;
+
+#[Fillable([])]
+class {{ class }} extends Model
+{
+    use HasApiQuery;
+    {{ factory }}
+
+    /**
+     * API query whitelists (all optional, see App\Support\ApiQueryColumns):
+     *
+     * protected array $filterable = [];  // filter / select / group_by (default: id + fillable + timestamps)
+     * protected array $sortable = [];    // order_by (default: filterable)
+     * protected array $searchable = [];  // keyword search
+     * protected array $includable = [];  // with / where_has / has
+     */
+}

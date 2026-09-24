@@ -1,0 +1,88 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ rootNamespace }}Http\Controllers\Controller;
+use {{ rootNamespace }}Http\Requests\{{ model }}\IndexRequest;
+use {{ rootNamespace }}Http\Requests\{{ model }}\StoreRequest;
+use {{ rootNamespace }}Http\Requests\{{ model }}\UpdateRequest;
+use {{ namespacedModel }};
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+/**
+ * @group {{ modelPlural }}
+ *
+ * This API allows you to manage {{ modelPluralLower }}.
+ */
+class {{ class }} extends Controller
+{
+    /**
+     * List {{ modelPluralLower }}.
+     *
+     * Paginated list with sorting, keyword search, filters (`operations`), `select`, `with`,
+     * `group_by` and `return_type=count`. Columns must be whitelisted on the {{ model }} model.
+     */
+    public function index(IndexRequest $request): JsonResponse
+    {
+        $query = {{ model }}::query()
+            ->apiSelect($request->selectColumns())
+            ->apiWith($request->relations())
+            ->search($request->keyword())
+            ->applyOperations($request->operations())
+            ->apiGroupBy($request->groupBy())
+            ->apiOrderBy($request->orderBy(), $request->orderType());
+
+        if ($request->wantsCount()) {
+            return $this->success($query->count());
+        }
+
+        return $this->success($query->paginate($request->perPage())->withQueryString());
+    }
+
+    /**
+     * Create a {{ modelLower }}.
+     */
+    public function store(StoreRequest $request): JsonResponse
+    {
+        ${{ modelVariable }} = {{ model }}::create($request->validated());
+
+        return $this->success(${{ modelVariable }}, '{{ model }} created successfully.', 201);
+    }
+
+    /**
+     * Get a {{ modelLower }}.
+     *
+     * @urlParam {{ modelVariable }} integer required The ID of the {{ modelLower }}. Example: 1
+     *
+     * @queryParam with string Comma separated relations to include. Example: user
+     */
+    public function show(Request $request, {{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        return $this->success(${{ modelVariable }}->loadIncludes($this->relations($request)));
+    }
+
+    /**
+     * Update a {{ modelLower }}.
+     *
+     * @urlParam {{ modelVariable }} integer required The ID of the {{ modelLower }}. Example: 1
+     */
+    public function update(UpdateRequest $request, {{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        ${{ modelVariable }}->update($request->validated());
+
+        return $this->success(${{ modelVariable }}, '{{ model }} updated successfully.');
+    }
+
+    /**
+     * Delete a {{ modelLower }}.
+     *
+     * @urlParam {{ modelVariable }} integer required The ID of the {{ modelLower }}. Example: 1
+     */
+    public function destroy({{ model }} ${{ modelVariable }}): JsonResponse
+    {
+        ${{ modelVariable }}->delete();
+
+        return $this->success(null, '{{ model }} deleted successfully.');
+    }
+}
