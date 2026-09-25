@@ -280,6 +280,24 @@ For owned resources, set the owner when creating (`$request->user()->posts()->cr
 the list in `index` (`QueryFlow::for($request->user()->posts())`) - see `UploadController`. Replace any
 rule with roles, teams or admin checks as needed.
 
+## Using it with the Angular Boilerplate
+
+The [Angular Boilerplate](https://github.com/brnrajoriya/Angular-Boilerplate) talks to this API
+out of the box: same auth endpoints, response envelope, QueryFlow parameters and demo account.
+
+```bash
+# this API
+composer setup && composer dev                  # http://localhost:8000
+
+# the frontend (in its own folder)
+# set useMockApi: false in src/environments/environment.development.ts
+npm start                                       # http://localhost:4200 - /api is proxied to :8000
+```
+
+In production, set `FRONTEND_URL` (password reset links go to `FRONTEND_URL/reset-password/{token}?email=...`)
+and `CORS_ALLOWED_ORIGINS` to the frontend's URL. All backend specifics on the Angular side live in
+`src/app/core/api/`, so either project can be swapped for another.
+
 ## Configuration
 
 `.env` highlights (see `.env.example`, `config/api.php` and `config/queryflow.php`):
