@@ -110,10 +110,5 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": [{
-        "name": "queryflow",
-        "type": "vcs",
-        "url": "https://github.com/brnrajoriya/laravel-queryflow"
-    }]
+    "prefer-stable": true
 }

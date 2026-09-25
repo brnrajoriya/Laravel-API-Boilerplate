@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "03ee94cdf94042850380c5692653dfef",
+    "content-hash": "ea00a73dc5c9fe9cf51928e009835bf0",
     "packages": [
         {
             "name": "brick/math",
@@ -99,37 +99,14 @@
                 }
             },
             "autoload": {
-                "psr-4": {
-                    "BrnRajoriya\\QueryFlow\\": "src/"
-                },
                 "files": [
                     "src/helpers.php"
-                ]
-            },
-            "autoload-dev": {
+                ],
                 "psr-4": {
-                    "BrnRajoriya\\QueryFlow\\Tests\\": "tests/"
+                    "BrnRajoriya\\QueryFlow\\": "src/"
                 }
             },
-            "scripts": {
-                "test": [
-                    "phpunit"
-                ],
-                "lint": [
-                    "pint --test"
-                ],
-                "format": [
-                    "pint"
-                ],
-                "analyse": [
-                    "phpstan analyse --memory-limit=1G"
-                ],
-                "ci": [
-                    "@lint",
-                    "@analyse",
-                    "@test"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -154,8 +131,8 @@
                 "search"
             ],
             "support": {
-                "source": "https://github.com/brnrajoriya/laravel-queryflow/tree/v1.0.0",
-                "issues": "https://github.com/brnrajoriya/laravel-queryflow/issues"
+                "issues": "https://github.com/brnrajoriya/laravel-queryflow/issues",
+                "source": "https://github.com/brnrajoriya/laravel-queryflow/tree/v1.0.0"
             },
             "time": "2026-09-25T04:44:46+00:00"
         },
