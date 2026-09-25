@@ -13,7 +13,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
-        "brnrajoriya/laravel-queryflow": "@dev",
+        "brnrajoriya/laravel-queryflow": "^1.0",
         "laravel/framework": "^13.17",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0"
@@ -111,14 +111,9 @@
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
-    "repositories": [
-        {
-            "name": "queryflow",
-            "type": "path",
-            "url": "../laravel-queryflow",
-            "options": {
-                "symlink": true
-            }
-        }
-    ]
+    "repositories": [{
+        "name": "queryflow",
+        "type": "vcs",
+        "url": "https://github.com/brnrajoriya/laravel-queryflow"
+    }]
 }

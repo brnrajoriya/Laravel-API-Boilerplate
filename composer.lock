@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a53aeace518b050b3734d5ae76db494f",
+    "content-hash": "03ee94cdf94042850380c5692653dfef",
     "packages": [
         {
             "name": "brick/math",
@@ -68,11 +68,17 @@
         },
         {
             "name": "brnrajoriya/laravel-queryflow",
-            "version": "dev-main",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/brnrajoriya/laravel-queryflow.git",
+                "reference": "8efe1ef7ccd9ebb101d364622ebc794335e34bd6"
+            },
             "dist": {
-                "type": "path",
-                "url": "../laravel-queryflow",
-                "reference": "fd86d0aeb404b23b5ffc558101492625eea2e5c8"
+                "type": "zip",
+                "url": "https://api.github.com/repos/brnrajoriya/laravel-queryflow/zipball/8efe1ef7ccd9ebb101d364622ebc794335e34bd6",
+                "reference": "8efe1ef7ccd9ebb101d364622ebc794335e34bd6",
+                "shasum": ""
             },
             "require": {
                 "laravel/framework": "^12.40|^13.0",
@@ -147,10 +153,11 @@
                 "rest",
                 "search"
             ],
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "source": "https://github.com/brnrajoriya/laravel-queryflow/tree/v1.0.0",
+                "issues": "https://github.com/brnrajoriya/laravel-queryflow/issues"
+            },
+            "time": "2026-09-25T04:44:46+00:00"
         },
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -9189,9 +9196,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "brnrajoriya/laravel-queryflow": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
