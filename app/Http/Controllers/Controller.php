@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Responses\ApiResponse;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Pagination\AbstractCursorPaginator;
+use Illuminate\Pagination\AbstractPaginator;
+use Illuminate\Support\Collection;
 
 abstract class Controller
 {
@@ -27,12 +31,21 @@ abstract class Controller
     }
 
     /**
-     * `?with=author,comments` → ['author', 'comments'] (validated by the model's `loadIncludes`).
+     * Success envelope with every model passed through an API Resource. Paginators keep their
+     * shape (`current_page`, `data`, `total`, ...); aggregates (numbers, grouped rows) pass unchanged.
      *
-     * @return list<string>
+     * @param  class-string<JsonResource>  $resource
      */
-    protected function relations(Request $request): array
+    protected function resource(mixed $data, string $resource, string $message = '', int $status = 200): JsonResponse
     {
-        return str($request->string('with'))->explode(',')->map(fn ($r) => trim($r))->filter()->values()->all();
+        $transform = fn (mixed $item) => $item instanceof Model ? (new $resource($item))->resolve(request()) : $item;
+
+        $data = match (true) {
+            $data instanceof AbstractPaginator, $data instanceof AbstractCursorPaginator => $data->through($transform),
+            $data instanceof Collection => $data->map($transform),
+            default => $transform($data),
+        };
+
+        return $this->success($data, $message, $status);
     }
 }

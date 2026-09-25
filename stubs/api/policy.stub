@@ -1,0 +1,48 @@
+<?php
+
+namespace {{ namespace }};
+
+use {{ namespacedModel }};
+use {{ rootNamespace }}Models\User;
+use {{ rootNamespace }}Policies\Concerns\ChecksOwnership;
+
+/**
+ * Who may do what with {{ modelPluralLower }}. Checked by {{ model }}Controller through Gate::authorize().
+ *
+ * Default: any authenticated user may list, view and create; a {{ modelLower }} with a `user_id`
+ * column may only be changed by its owner. Change any rule below (roles, teams, admins, ...).
+ */
+class {{ class }}
+{
+    use ChecksOwnership;
+
+    public function viewAny(User $user): bool
+    {
+        return true;
+    }
+
+    public function view(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return true;
+    }
+
+    public function create(User $user): bool
+    {
+        return true;
+    }
+
+    public function update(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return $this->isOwner($user, ${{ modelVariable }});
+    }
+
+    public function delete(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return $this->isOwner($user, ${{ modelVariable }});
+    }
+
+    public function restore(User $user, {{ model }} ${{ modelVariable }}): bool
+    {
+        return $this->isOwner($user, ${{ modelVariable }});
+    }
+}

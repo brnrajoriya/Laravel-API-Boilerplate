@@ -2,27 +2,19 @@
 
 namespace App\Http\Requests\Dummy;
 
-use App\Http\Requests\ApiIndexRequest;
-use Illuminate\Contracts\Validation\ValidationRule;
+use BrnRajoriya\QueryFlow\Http\QueryFlowRequest;
 
 /**
- * List dummies: pagination, sorting, search and filter parameters.
- * The shared rules live in ApiIndexRequest; add endpoint specific ones below.
+ * List dummies: every QueryFlow parameter (page, per_page, order_by, keyword, filter,
+ * operations, with, with_count, return_type, ...) is validated by QueryFlowRequest.
+ * Add endpoint specific rules below.
  */
-class IndexRequest extends ApiIndexRequest
+class IndexRequest extends QueryFlowRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, ValidationRule|array<mixed>|string>
+     * @return array<string, mixed>
      */
     public function rules(): array
     {

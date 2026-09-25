@@ -2,23 +2,23 @@
 
 namespace {{ namespace }};
 
-use App\Models\Concerns\HasApiQuery;
+use BrnRajoriya\QueryFlow\Attributes\Queryable;
+use BrnRajoriya\QueryFlow\Concerns\HasQueryFlow;
 {{ factoryImport }}
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * QueryFlow whitelists: what API clients may filter, sort, search and include.
+ * Leave a list out to use its default (filterable: id + fillable + timestamps, minus hidden).
+ */
+#[Queryable(
+    searchable: [],
+    includable: [],
+)]
 #[Fillable([])]
 class {{ class }} extends Model
 {
-    use HasApiQuery;
+    use HasQueryFlow;
     {{ factory }}
-
-    /**
-     * API query whitelists (all optional, see App\Support\ApiQueryColumns):
-     *
-     * protected array $filterable = [];  // filter / select / group_by (default: id + fillable + timestamps)
-     * protected array $sortable = [];    // order_by (default: filterable)
-     * protected array $searchable = [];  // keyword search
-     * protected array $includable = [];  // with / where_has / has
-     */
 }

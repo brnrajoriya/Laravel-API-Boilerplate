@@ -1,0 +1,29 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * The JSON shape of a {{ modelLower }}. Listing fields explicitly keeps the database schema private:
+ * renaming a column or adding a secret one does not change (or leak into) the API.
+ *
+ * @mixin \{{ namespacedModel }}
+ */
+class {{ class }} extends JsonResource
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        // return [
+        //     'id' => $this->id,
+        //     'name' => $this->name,
+        //     'created_at' => $this->created_at,
+        // ];
+
+        return parent::toArray($request);
+    }
+}

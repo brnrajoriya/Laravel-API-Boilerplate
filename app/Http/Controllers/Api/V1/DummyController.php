@@ -3,12 +3,17 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BulkDestroyRequest;
 use App\Http\Requests\Dummy\IndexRequest;
 use App\Http\Requests\Dummy\StoreRequest;
 use App\Http\Requests\Dummy\UpdateRequest;
+use App\Http\Resources\DummyResource;
 use App\Models\Dummy;
+use BrnRajoriya\QueryFlow\QueryFlow;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * @group Dummies
@@ -20,24 +25,20 @@ class DummyController extends Controller
     /**
      * List dummies.
      *
-     * Paginated list with sorting, keyword search, filters (`operations`), `select`, `with`,
-     * `group_by` and `return_type=count`. Columns must be whitelisted on the Dummy model.
+     * Powered by QueryFlow: pagination, sorting, keyword search, filters, operations, relations,
+     * counts and aggregates. Allowed columns and relations are declared on the Dummy model.
      */
     public function index(IndexRequest $request): JsonResponse
     {
-        $query = Dummy::query()
-            ->apiSelect($request->selectColumns())
-            ->apiWith($request->relations())
-            ->search($request->keyword())
-            ->applyOperations($request->operations())
-            ->apiGroupBy($request->groupBy())
-            ->apiOrderBy($request->orderBy(), $request->orderType());
+        Gate::authorize('viewAny', Dummy::class);
 
-        if ($request->wantsCount()) {
-            return $this->success($query->count());
-        }
+        // Add your own constraints to the query, e.g. ->where('user_id', $request->user()->id).
+        // Client filters are grouped, so they can never escape them.
+        $result = QueryFlow::for(Dummy::query())
+            ->apply($request->queryFlow())
+            ->get();
 
-        return $this->success($query->paginate($request->perPage())->withQueryString());
+        return $this->resource($result, DummyResource::class);
     }
 
     /**
@@ -45,9 +46,11 @@ class DummyController extends Controller
      */
     public function store(StoreRequest $request): JsonResponse
     {
+        Gate::authorize('create', Dummy::class);
+
         $dummy = Dummy::create($request->validated());
 
-        return $this->success($dummy, 'Dummy created successfully.', 201);
+        return $this->resource($dummy, DummyResource::class, 'Dummy created successfully.', 201);
     }
 
     /**
@@ -55,11 +58,14 @@ class DummyController extends Controller
      *
      * @urlParam dummy integer required The ID of the dummy. Example: 1
      *
-     * @queryParam with string Comma separated relations to include. Example: user
+     * @queryParam with string Comma separated relations to include.
+     * @queryParam with_count string Comma separated relations to count.
      */
     public function show(Request $request, Dummy $dummy): JsonResponse
     {
-        return $this->success($dummy->loadIncludes($this->relations($request)));
+        Gate::authorize('view', $dummy);
+
+        return $this->resource(QueryFlow::load($dummy, $request->query()), DummyResource::class);
     }
 
     /**
@@ -69,9 +75,11 @@ class DummyController extends Controller
      */
     public function update(UpdateRequest $request, Dummy $dummy): JsonResponse
     {
+        Gate::authorize('update', $dummy);
+
         $dummy->update($request->validated());
 
-        return $this->success($dummy, 'Dummy updated successfully.');
+        return $this->resource($dummy, DummyResource::class, 'Dummy updated successfully.');
     }
 
     /**
@@ -81,8 +89,45 @@ class DummyController extends Controller
      */
     public function destroy(Dummy $dummy): JsonResponse
     {
+        Gate::authorize('delete', $dummy);
+
         $dummy->delete();
 
         return $this->success(null, 'Dummy deleted successfully.');
+    }
+
+    /**
+     * Delete many dummies.
+     *
+     * All or nothing: fails with 404 / 403 if any id is missing or not allowed.
+     */
+    public function bulkDestroy(BulkDestroyRequest $request): JsonResponse
+    {
+        $ids = $request->ids();
+        $dummies = Dummy::query()->findMany($ids);
+
+        if ($dummies->count() !== count($ids)) {
+            return $this->fail('Some dummies were not found.', 404);
+        }
+
+        $dummies->each(fn (Dummy $dummy) => Gate::authorize('delete', $dummy));
+
+        DB::transaction(fn () => $dummies->each->delete());
+
+        return $this->success(['deleted' => count($ids)], count($ids).' dummies deleted successfully.');
+    }
+
+    /**
+     * Restore a deleted dummy.
+     *
+     * @urlParam dummy integer required The ID of the dummy. Example: 1
+     */
+    public function restore(Dummy $dummy): JsonResponse
+    {
+        Gate::authorize('restore', $dummy);
+
+        $dummy->restore();
+
+        return $this->resource($dummy, DummyResource::class, 'Dummy restored successfully.');
     }
 }

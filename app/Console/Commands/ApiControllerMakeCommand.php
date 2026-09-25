@@ -2,19 +2,19 @@
 
 namespace App\Console\Commands;
 
-use App\Console\Commands\Concerns\GeneratesApiRequests;
+use App\Console\Commands\Concerns\GeneratesApiFiles;
 use Illuminate\Routing\Console\ControllerMakeCommand;
 use Illuminate\Support\Str;
 
 /**
- * Replaces Laravel's `make:controller`. When a model is given (`--model`, `--api` / `--resource`
- * which infer the model from the name, or `make:model -mcr / --api / -a`), it generates the boilerplate's API controller
- * (`stubs/api/controller.stub`) plus `Requests/{Model}/Index|Store|UpdateRequest`.
+ * Replaces Laravel's `make:controller`. When a model is known (`--model`, `--api` / `--resource`
+ * which infer it from the name, or `make:model -a / -c / -r / --api`) it generates the boilerplate's
+ * QueryFlow API controller plus its requests, resource, policy and test (see GeneratesApiFiles).
  * Every other variant (plain, invokable, singleton, nested, --type) behaves exactly like Laravel.
  */
 class ApiControllerMakeCommand extends ControllerMakeCommand
 {
-    use GeneratesApiRequests;
+    use GeneratesApiFiles;
 
     public function handle()
     {
@@ -28,8 +28,8 @@ class ApiControllerMakeCommand extends ControllerMakeCommand
         if ($result !== false && $this->usesApiStub()) {
             $model = class_basename($this->parseModel((string) $this->option('model')));
             $this->components->info(sprintf(
-                "Register the route in routes/api.php: Route::apiResource('%s', %s::class)",
-                Str::kebab(Str::pluralStudly($model)),
+                "Register the routes in routes/api.php: Route::apiCrud('%s', %s::class)",
+                $this->apiRouteName($model),
                 class_basename($this->qualifyClass($this->getNameInput())),
             ));
         }
@@ -56,13 +56,13 @@ class ApiControllerMakeCommand extends ControllerMakeCommand
             return $replace;
         }
 
-        $model = class_basename($this->parseModel((string) $this->option('model')));
+        $modelClass = $this->parseModel((string) $this->option('model'));
 
-        return array_merge($replace, $this->apiReplacements($model));
+        return array_merge($replace, $this->apiReplacements($modelClass, $this->qualifyClass($this->getNameInput())));
     }
 
     /**
-     * API controllers always get the folder style form requests, with or without `--requests`.
+     * API controllers always get their requests, resource, policy and test.
      *
      * @param  array<string, string>  $replace
      * @param  string  $modelClass
@@ -74,7 +74,7 @@ class ApiControllerMakeCommand extends ControllerMakeCommand
             return parent::buildFormRequestReplacements($replace, $modelClass);
         }
 
-        $this->generateApiRequests($modelClass);
+        $this->generateApiFiles($modelClass, $this->qualifyClass($this->getNameInput()));
 
         return $replace;
     }

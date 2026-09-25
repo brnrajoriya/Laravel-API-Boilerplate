@@ -9,6 +9,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Requests\Auth\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
@@ -70,7 +71,7 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        return $this->success($request->user());
+        return $this->resource($request->user(), UserResource::class);
     }
 
     /**
@@ -81,7 +82,7 @@ class AuthController extends Controller
         $user = $request->user();
         $user->update($request->validated());
 
-        return $this->success($user, 'Profile updated successfully.');
+        return $this->resource($user, UserResource::class, 'Profile updated successfully.');
     }
 
     /**
@@ -153,7 +154,7 @@ class AuthController extends Controller
     }
 
     /**
-     * @return array{token: string, token_type: string, expires_in: int, expires_at: string, user: User}
+     * @return array{token: string, token_type: string, expires_in: int, expires_at: string, user: array<string, mixed>}
      */
     private function tokenPayload(User $user, Request $request): array
     {
@@ -166,7 +167,7 @@ class AuthController extends Controller
             'token_type' => 'Bearer',
             'expires_in' => $minutes * 60,
             'expires_at' => $expiresAt->toIso8601String(),
-            'user' => $user,
+            'user' => (new UserResource($user))->resolve($request),
         ];
     }
 }

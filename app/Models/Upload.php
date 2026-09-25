@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\HasApiQuery;
 use App\Policies\UploadPolicy;
+use BrnRajoriya\QueryFlow\Attributes\Queryable;
+use BrnRajoriya\QueryFlow\Concerns\HasQueryFlow;
 use Database\Factories\UploadFactory;
-use Illuminate\Database\Eloquent\Attributes\Appends;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Attributes\UsePolicy;
@@ -15,20 +15,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
+#[Queryable(
+    filterable: ['id', 'original_name', 'mime_type', 'size', 'created_at'],
+    searchable: ['original_name'],
+)]
 #[Fillable(['user_id', 'disk', 'path', 'original_name', 'mime_type', 'size'])]
 #[Hidden(['disk', 'path'])]
-#[Appends(['url'])]
 #[UsePolicy(UploadPolicy::class)]
 class Upload extends Model
 {
     /** @use HasFactory<UploadFactory> */
-    use HasApiQuery, HasFactory;
-
-    /** @var list<string> */
-    protected array $filterable = ['id', 'original_name', 'mime_type', 'size', 'created_at'];
-
-    /** @var list<string> */
-    protected array $searchable = ['original_name'];
+    use HasFactory, HasQueryFlow;
 
     protected static function booted(): void
     {

@@ -3,12 +3,17 @@
 namespace {{ namespace }};
 
 use {{ rootNamespace }}Http\Controllers\Controller;
+use {{ rootNamespace }}Http\Requests\BulkDestroyRequest;
 use {{ rootNamespace }}Http\Requests\{{ model }}\IndexRequest;
 use {{ rootNamespace }}Http\Requests\{{ model }}\StoreRequest;
 use {{ rootNamespace }}Http\Requests\{{ model }}\UpdateRequest;
+use {{ rootNamespace }}Http\Resources\{{ model }}Resource;
 use {{ namespacedModel }};
+use BrnRajoriya\QueryFlow\QueryFlow;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 /**
  * @group {{ modelPlural }}
@@ -20,24 +25,20 @@ class {{ class }} extends Controller
     /**
      * List {{ modelPluralLower }}.
      *
-     * Paginated list with sorting, keyword search, filters (`operations`), `select`, `with`,
-     * `group_by` and `return_type=count`. Columns must be whitelisted on the {{ model }} model.
+     * Powered by QueryFlow: pagination, sorting, keyword search, filters, operations, relations,
+     * counts and aggregates. Allowed columns and relations are declared on the {{ model }} model.
      */
     public function index(IndexRequest $request): JsonResponse
     {
-        $query = {{ model }}::query()
-            ->apiSelect($request->selectColumns())
-            ->apiWith($request->relations())
-            ->search($request->keyword())
-            ->applyOperations($request->operations())
-            ->apiGroupBy($request->groupBy())
-            ->apiOrderBy($request->orderBy(), $request->orderType());
+        Gate::authorize('viewAny', {{ model }}::class);
 
-        if ($request->wantsCount()) {
-            return $this->success($query->count());
-        }
+        // Add your own constraints to the query, e.g. ->where('user_id', $request->user()->id).
+        // Client filters are grouped, so they can never escape them.
+        $result = QueryFlow::for({{ model }}::query())
+            ->apply($request->queryFlow())
+            ->get();
 
-        return $this->success($query->paginate($request->perPage())->withQueryString());
+        return $this->resource($result, {{ model }}Resource::class);
     }
 
     /**
@@ -45,9 +46,11 @@ class {{ class }} extends Controller
      */
     public function store(StoreRequest $request): JsonResponse
     {
+        Gate::authorize('create', {{ model }}::class);
+
         ${{ modelVariable }} = {{ model }}::create($request->validated());
 
-        return $this->success(${{ modelVariable }}, '{{ model }} created successfully.', 201);
+        return $this->resource(${{ modelVariable }}, {{ model }}Resource::class, '{{ model }} created successfully.', 201);
     }
 
     /**
@@ -55,11 +58,14 @@ class {{ class }} extends Controller
      *
      * @urlParam {{ modelVariable }} integer required The ID of the {{ modelLower }}. Example: 1
      *
-     * @queryParam with string Comma separated relations to include. Example: user
+     * @queryParam with string Comma separated relations to include.
+     * @queryParam with_count string Comma separated relations to count.
      */
     public function show(Request $request, {{ model }} ${{ modelVariable }}): JsonResponse
     {
-        return $this->success(${{ modelVariable }}->loadIncludes($this->relations($request)));
+        Gate::authorize('view', ${{ modelVariable }});
+
+        return $this->resource(QueryFlow::load(${{ modelVariable }}, $request->query()), {{ model }}Resource::class);
     }
 
     /**
@@ -69,9 +75,11 @@ class {{ class }} extends Controller
      */
     public function update(UpdateRequest $request, {{ model }} ${{ modelVariable }}): JsonResponse
     {
+        Gate::authorize('update', ${{ modelVariable }});
+
         ${{ modelVariable }}->update($request->validated());
 
-        return $this->success(${{ modelVariable }}, '{{ model }} updated successfully.');
+        return $this->resource(${{ modelVariable }}, {{ model }}Resource::class, '{{ model }} updated successfully.');
     }
 
     /**
@@ -81,8 +89,31 @@ class {{ class }} extends Controller
      */
     public function destroy({{ model }} ${{ modelVariable }}): JsonResponse
     {
+        Gate::authorize('delete', ${{ modelVariable }});
+
         ${{ modelVariable }}->delete();
 
         return $this->success(null, '{{ model }} deleted successfully.');
     }
-}
+
+    /**
+     * Delete many {{ modelPluralLower }}.
+     *
+     * All or nothing: fails with 404 / 403 if any id is missing or not allowed.
+     */
+    public function bulkDestroy(BulkDestroyRequest $request): JsonResponse
+    {
+        $ids = $request->ids();
+        ${{ modelPluralVariable }} = {{ model }}::query()->findMany($ids);
+
+        if (${{ modelPluralVariable }}->count() !== count($ids)) {
+            return $this->fail('Some {{ modelPluralLower }} were not found.', 404);
+        }
+
+        ${{ modelPluralVariable }}->each(fn ({{ model }} ${{ modelVariable }}) => Gate::authorize('delete', ${{ modelVariable }}));
+
+        DB::transaction(fn () => ${{ modelPluralVariable }}->each->delete());
+
+        return $this->success(['deleted' => count($ids)], count($ids).' {{ modelPluralLower }} deleted successfully.');
+    }
+{{ restoreMethod }}}

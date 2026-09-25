@@ -36,6 +36,7 @@ Route::prefix('v1')->name('v1.')->group(function (): void {
         Route::post('uploads', [UploadController::class, 'store'])->middleware('throttle:uploads')->name('uploads.store');
 
         // Example resource generated with `php artisan make:model Dummy -a`.
-        Route::apiResource('dummies', DummyController::class);
+        // apiCrud = apiResource + DELETE dummies (bulk) + POST dummies/{dummy}/restore.
+        Route::apiCrud('dummies', DummyController::class);
     });
 });

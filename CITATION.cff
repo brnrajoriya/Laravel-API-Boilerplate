@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this boilerplate in your work, please cite it as below."
+title: "Laravel API Boilerplate"
+abstract: "Production-ready Laravel 13 REST API starter with Sanctum auth, file uploads, a CRUD generator and QueryFlow list endpoints."
+type: software
+authors:
+  - family-names: "Rajoriya"
+    given-names: "Bhaskar"
+    website: "https://www.linkedin.com/in/brnrajoriya/"
+repository-code: "https://github.com/brnrajoriya/Laravel-API-Boilerplate"
+license: MIT
+version: 2.0.0
+date-released: "2026-09-24"
+references:
+  - type: software
+    title: "QueryFlow for Laravel"
+    authors:
+      - family-names: "Rajoriya"
+        given-names: "Bhaskar"
+    repository-code: "https://github.com/brnrajoriya/laravel-queryflow"

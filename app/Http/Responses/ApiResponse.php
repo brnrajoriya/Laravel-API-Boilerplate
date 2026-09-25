@@ -58,7 +58,7 @@ final class ApiResponse
     {
         return match (true) {
             $data === null => new stdClass,
-            $data instanceof JsonResource => $data->response()->getData(true),
+            $data instanceof JsonResource => $data->resolve(request()),
             $data instanceof Arrayable => $data->toArray(),
             default => $data,
         };

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ApiIndexRequest;
+use App\Http\Requests\Upload\IndexRequest;
 use App\Http\Requests\Upload\StoreRequest;
+use App\Http\Resources\UploadResource;
 use App\Models\Upload;
+use BrnRajoriya\QueryFlow\QueryFlow;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Gate;
 
@@ -18,19 +20,17 @@ class UploadController extends Controller
 {
     /**
      * List my uploads.
+     *
+     * Supports the QueryFlow list parameters (keyword, filter, operations, order_by, pagination, ...).
      */
-    public function index(ApiIndexRequest $request): JsonResponse
+    public function index(IndexRequest $request): JsonResponse
     {
-        $query = $request->user()->uploads()->getQuery()
-            ->search($request->keyword())
-            ->applyOperations($request->operations())
-            ->apiOrderBy($request->orderBy(), $request->orderType());
+        // Scoped to the current user; client filters cannot escape this constraint.
+        $result = QueryFlow::for($request->user()->uploads())
+            ->apply($request->queryFlow())
+            ->get();
 
-        if ($request->wantsCount()) {
-            return $this->success($query->count());
-        }
-
-        return $this->success($query->paginate($request->perPage())->withQueryString());
+        return $this->resource($result, UploadResource::class);
     }
 
     /**
@@ -55,7 +55,7 @@ class UploadController extends Controller
             'size' => $file->getSize(),
         ]);
 
-        return $this->success($upload, 'File uploaded successfully.', 201);
+        return $this->resource($upload, UploadResource::class, 'File uploaded successfully.', 201);
     }
 
     /**
@@ -67,7 +67,7 @@ class UploadController extends Controller
     {
         Gate::authorize('view', $upload);
 
-        return $this->success($upload);
+        return $this->resource($upload, UploadResource::class);
     }
 
     /**

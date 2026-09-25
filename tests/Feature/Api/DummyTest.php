@@ -145,7 +145,88 @@ class DummyTest extends TestCase
             ->assertJsonPath('data', [])
             ->assertJsonPath('message', 'Dummy deleted successfully.');
 
-        $this->assertModelMissing($dummy);
+        $this->assertSoftDeleted($dummy);
+        $this->getJson("/api/v1/dummies/{$dummy->id}")->assertNotFound();
+    }
+
+    public function test_filter_shorthand_and_grouped_count(): void
+    {
+        Dummy::factory()->count(3)->create(['category' => 'tech']);
+        Dummy::factory()->create(['category' => 'news']);
+
+        $this->getJson('/api/v1/dummies?filter[category]=tech')->assertJsonPath('data.total', 3);
+        $this->getJson('/api/v1/dummies?filter[category][]=tech&filter[category][]=news')->assertJsonPath('data.total', 4);
+
+        $this->getJson('/api/v1/dummies?return_type=count&group_by=category')
+            ->assertOk()
+            ->assertJsonPath('data', [
+                ['category' => 'news', 'count' => 1],
+                ['category' => 'tech', 'count' => 3],
+            ]);
+
+        // group_by alone would return one arbitrary row per group - rejected.
+        $this->getJson('/api/v1/dummies?group_by=category')->assertUnprocessable();
+    }
+
+    public function test_simple_and_cursor_pagination(): void
+    {
+        Dummy::factory()->count(3)->create();
+
+        $this->getJson('/api/v1/dummies?pagination=simple&per_page=2')
+            ->assertOk()
+            ->assertJsonMissingPath('data.total')
+            ->assertJsonCount(2, 'data.data');
+
+        $next = $this->getJson('/api/v1/dummies?pagination=cursor&per_page=2')
+            ->assertOk()
+            ->json('data.next_cursor');
+
+        $this->getJson('/api/v1/dummies?pagination=cursor&per_page=2&cursor='.$next)->assertJsonCount(1, 'data.data');
+    }
+
+    public function test_resource_hides_internal_columns_and_respects_select(): void
+    {
+        Dummy::factory()->create();
+
+        $row = $this->getJson('/api/v1/dummies')->json('data.data.0');
+        $this->assertSame(['id', 'title', 'category', 'description', 'created_at', 'updated_at'], array_keys($row));
+
+        $row = $this->getJson('/api/v1/dummies?select=title')->json('data.data.0');
+        $this->assertSame(['id', 'title'], array_keys($row));
+    }
+
+    public function test_trashed_and_restore(): void
+    {
+        $dummy = Dummy::factory()->create();
+        $dummy->delete();
+
+        $this->getJson('/api/v1/dummies')->assertJsonPath('data.total', 0);
+        $this->getJson('/api/v1/dummies?trashed=only')
+            ->assertJsonPath('data.total', 1)
+            ->assertJsonPath('data.data.0.id', $dummy->id);
+
+        $this->postJson("/api/v1/dummies/{$dummy->id}/restore")
+            ->assertOk()
+            ->assertJsonPath('message', 'Dummy restored successfully.');
+
+        $this->assertNotSoftDeleted($dummy);
+    }
+
+    public function test_bulk_destroy_is_all_or_nothing(): void
+    {
+        $dummies = Dummy::factory()->count(3)->create();
+
+        $this->deleteJson('/api/v1/dummies', ['ids' => [$dummies[0]->id, 999]])->assertNotFound();
+        $this->assertSame(3, Dummy::count());
+
+        $this->deleteJson('/api/v1/dummies', ['ids' => []])->assertUnprocessable();
+        $this->deleteJson('/api/v1/dummies', ['ids' => range(1, 101)])->assertUnprocessable();
+
+        $this->deleteJson('/api/v1/dummies', ['ids' => [$dummies[0]->id, $dummies[1]->id]])
+            ->assertOk()
+            ->assertJsonPath('data.deleted', 2);
+
+        $this->assertSame(1, Dummy::count());
     }
 
     public function test_missing_record_is_a_404_envelope(): void

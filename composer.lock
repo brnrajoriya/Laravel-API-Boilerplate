@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f9dd0747972df6df02ac0ac39bd2b18e",
+    "content-hash": "a53aeace518b050b3734d5ae76db494f",
     "packages": [
         {
             "name": "brick/math",
@@ -65,6 +65,92 @@
                 }
             ],
             "time": "2026-09-12T10:28:18+00:00"
+        },
+        {
+            "name": "brnrajoriya/laravel-queryflow",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "../laravel-queryflow",
+                "reference": "fd86d0aeb404b23b5ffc558101492625eea2e5c8"
+            },
+            "require": {
+                "laravel/framework": "^12.40|^13.0",
+                "php": "^8.3"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.0",
+                "laravel/pint": "^1.20",
+                "orchestra/testbench": "^10.0|^11.0",
+                "phpunit/phpunit": "^11.5|^12.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "BrnRajoriya\\QueryFlow\\QueryFlowServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "BrnRajoriya\\QueryFlow\\": "src/"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "BrnRajoriya\\QueryFlow\\Tests\\": "tests/"
+                }
+            },
+            "scripts": {
+                "test": [
+                    "phpunit"
+                ],
+                "lint": [
+                    "pint --test"
+                ],
+                "format": [
+                    "pint"
+                ],
+                "analyse": [
+                    "phpstan analyse --memory-limit=1G"
+                ],
+                "ci": [
+                    "@lint",
+                    "@analyse",
+                    "@test"
+                ]
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Bhaskar Rajoriya",
+                    "homepage": "https://www.linkedin.com/in/brnrajoriya/",
+                    "role": "Creator"
+                }
+            ],
+            "description": "QueryFlow: turn any Eloquent model into a safe, filterable, sortable, searchable and paginated REST list endpoint - driven by a per-model whitelist.",
+            "homepage": "https://github.com/brnrajoriya/laravel-queryflow",
+            "keywords": [
+                "api",
+                "eloquent",
+                "filter",
+                "laravel",
+                "pagination",
+                "query",
+                "queryflow",
+                "rest",
+                "search"
+            ],
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -9103,7 +9189,9 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": {
+        "brnrajoriya/laravel-queryflow": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

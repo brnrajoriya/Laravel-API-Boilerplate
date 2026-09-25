@@ -13,6 +13,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
+        "brnrajoriya/laravel-queryflow": "@dev",
         "laravel/framework": "^13.17",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0"
@@ -33,10 +34,7 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        },
-        "files": [
-            "app/helpers.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -112,5 +110,15 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "name": "queryflow",
+            "type": "path",
+            "url": "../laravel-queryflow",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }

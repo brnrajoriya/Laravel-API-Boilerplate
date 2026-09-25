@@ -1,0 +1,39 @@
+<?php
+
+namespace Tests\Feature\Api;
+
+use {{ rootNamespace }}Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+/**
+ * Starter tests for the {{ modelPluralLower }} API. Register the route first:
+ *   Route::apiCrud('{{ routeName }}', {{ controller }}::class);
+ * then add store / update tests once the model has columns and a factory.
+ */
+class {{ class }} extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_guests_are_rejected(): void
+    {
+        $this->getJson('/api/v1/{{ routeName }}')->assertUnauthorized()->assertJsonPath('status', 'fail');
+    }
+
+    public function test_index_returns_a_paginated_envelope(): void
+    {
+        $this->actingAs(User::factory()->create(), 'sanctum')
+            ->getJson('/api/v1/{{ routeName }}')
+            ->assertOk()
+            ->assertJsonPath('status', 'success')
+            ->assertJsonStructure(['data' => ['current_page', 'data', 'total']]);
+    }
+
+    public function test_missing_record_is_a_404_envelope(): void
+    {
+        $this->actingAs(User::factory()->create(), 'sanctum')
+            ->getJson('/api/v1/{{ routeName }}/999999')
+            ->assertNotFound()
+            ->assertJsonPath('hasError', true);
+    }
+}
